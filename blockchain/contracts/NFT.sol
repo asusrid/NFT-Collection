@@ -24,7 +24,6 @@ contract NFT is ERC721Enumerable, Ownable {
         _;
     }
 
-
     // because of constructor of ERC721, we need to provide a name and a code ERC721("NFT Collection", "NFT_C")
     constructor(string memory baseURI, address whitelistContract) ERC721("NFT Collection", "NFT_C") {
         _baseTokenURI = baseURI;

@@ -1,29 +1,30 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// When running the script with `npx hardhat run <script>` you'll find the Hardhat
-// Runtime Environment's members available in the global scope.
-const hre = require("hardhat");
+const { ethers } = require("hardhat");
+require("dotenv").config({ path: ".env" });
+const { WHITELIST_CONTRACT_ADDRESS, METADATA_URL } = require("../constants");
 
 async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
 
-  // We get the contract to deploy
-  const Greeter = await hre.ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  // address of the previously deployed contract
+  const whitelistContract = WHITELIST_CONTRACT_ADDRESS;
+  // URL from where we can extract the metadata for a Crypto Dev NFT
+  const metadataURL = METADATA_URL;
+  
+  const cryptoDevsContract = await ethers.getContractFactory("NFT");
 
-  await greeter.deployed();
+  // deploy the contract
+  const deployedCryptoDevsContract = await cryptoDevsContract.deploy(
+    metadataURL,
+    whitelistContract
+  );
 
-  console.log("Greeter deployed to:", greeter.address);
+  // print the address of the deployed contract
+  console.log(
+    "NFT contract Address:",
+    deployedCryptoDevsContract.address
+  );
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
+// Call the main function and catch if there is any error
 main()
   .then(() => process.exit(0))
   .catch((error) => {
