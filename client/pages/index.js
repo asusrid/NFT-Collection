@@ -9,6 +9,7 @@ export default function Home() {
 
   const [isOwner, setIsOwner] = useState(false);
   const [presaleStarted, setPresaleStarted] = useState(false);
+  const [presaleEnded, setPresaleEnded] = useState(false);
   const [walletConnected, setWalletConnected] = useState(false);
   const web3ModalRef = useRef();
 
@@ -59,6 +60,26 @@ export default function Home() {
     }
   };
 
+  const checkIfPresaleEnded = async () => {
+    try {
+      const provider = await getProviderOrSigner();
+      const nftContract = new Contract(NFT_CONTRACT_ADDRESS, NFT_CONTRACT_ABI, provider);
+
+      // this will be a BigNumber as it is uint256
+      // unit in seconds
+      const presaleEndTime = nftContract.presaleEndTime();
+      const currentTimeInSeconds = Date.now() / 1000;
+
+      // we have to use the func lt instead of < because of BigNumber
+      const hasPresaleEnded = presaleEndTime.lt(Math.floor(currentTimeInSeconds));
+
+      setPresaleEnded(hasPresaleEnded);
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   const connectWallet = async () => {
     // we need to gain access to the provider/signer from Metamask
     try {
@@ -103,6 +124,7 @@ export default function Home() {
       });
 
       connectWallet();
+      checkIfPresaleStarted();
     }
 
   }, []);
