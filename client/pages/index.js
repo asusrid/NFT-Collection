@@ -1,5 +1,5 @@
 import styles from '../styles/Home.module.css';
-import { providers, Contract } from "ethers";
+import { providers, Contract, utils } from "ethers";
 import React, { useEffect, useRef, useState } from "react";
 import Web3Modal from "web3modal";
 import Head from "next/head";
@@ -14,6 +14,24 @@ export default function Home() {
   const [walletConnected, setWalletConnected] = useState(false);
   const web3ModalRef = useRef();
 
+  const presaleMint = async () => {
+
+    try {
+      const signer  = await getProviderOrSigner(true);
+      const nftContract = new Contract(NFT_CONTRACT_ADDRESS, NFT_CONTRACT_ABI, signer);
+  
+      const tx = await nftContract.presaleMint({
+        value: utils.parseEther("0.01")
+      });
+      await tx.wait();
+
+      window.alert("Succesfully minted NFT!!");
+
+    } catch (error) {
+      console.error(error);
+    }
+
+  };
 
   const getOwner = async () => {
     try {
