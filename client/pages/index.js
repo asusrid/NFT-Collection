@@ -164,7 +164,11 @@ export default function Home() {
     if (!presaleStarted) {
       // presale hasnt started yet, come back later
       return (
-        
+        <div>
+          <span className={styles.description}>
+            Presale has not started yet. come back later!
+          </span>
+        </div>
       );
     }
 
@@ -172,14 +176,28 @@ export default function Home() {
       // allow users to mint presale
       // they need to be in whitelist 
       return (
-        
+        <div>
+          <span className={styles.description}>
+            Presale has started! If you're in the whitelist, you can start minting!
+          </span>
+          <button className={styles.button}>
+            Presale Mint
+          </button>
+        </div>
       );
     }
 
     if (presaleEnded) {
       // allow users to take part in public sale
       return (
-        
+        <div>
+          <span className={styles.description}>
+            Presale has ended! You can mint NFT in public sale.
+          </span>
+          <button className={styles.button}>
+            Public Mint
+          </button>
+        </div>
       );
     }
   }
