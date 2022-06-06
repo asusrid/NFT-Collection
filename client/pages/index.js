@@ -1,10 +1,9 @@
-import styles from '../styles/Home.module.css';
-import { providers, Contract, utils } from "ethers";
+import { Contract, providers, utils } from "ethers";
+import Head from "next/head";
 import React, { useEffect, useRef, useState } from "react";
 import Web3Modal from "web3modal";
-import Head from "next/head";
-import { NFT_CONTRACT_ABI, NFT_CONTRACT_ADDRESS } from '../constants'; 
-import { render } from 'express/lib/response';
+import { abi, NFT_CONTRACT_ADDRESS } from "../constants";
+import styles from "../styles/Home.module.css";
 
 export default function Home() {
 
@@ -12,13 +11,29 @@ export default function Home() {
   const [presaleStarted, setPresaleStarted] = useState(false);
   const [presaleEnded, setPresaleEnded] = useState(false);
   const [walletConnected, setWalletConnected] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [numTokensMinted, setNumTokensMinted] = useState("");
   const web3ModalRef = useRef();
+
+  const getNumMintedTokens = async () => {
+    try {
+      const provider  = await getProviderOrSigner();
+      const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
+  
+      const numTokenIds = await nftContract.tokenIds();
+      setNumTokensMinted(numTokenIds.toString());
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const presaleMint = async () => {
 
+    setLoading(true);
     try {
       const signer  = await getProviderOrSigner(true);
-      const nftContract = new Contract(NFT_CONTRACT_ADDRESS, NFT_CONTRACT_ABI, signer);
+      const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
   
       const tx = await nftContract.presaleMint({
         value: utils.parseEther("0.01")
@@ -30,13 +45,34 @@ export default function Home() {
     } catch (error) {
       console.error(error);
     }
+    setLoading(false);
 
+  };
+  
+  const publicMint = async () => {
+    setLoading(true);
+    try {
+      const signer  = await getProviderOrSigner(true);
+      const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
+  
+      const tx = await nftContract.mint({
+        value: utils.parseEther("0.01")
+      });
+      await tx.wait();
+
+      window.alert("Succesfully minted NFT!!");
+
+    } catch (error) {
+      console.error(error);
+    }
+    setLoading(false);
   };
 
   const getOwner = async () => {
     try {
       const signer = await getProviderOrSigner(true);
-      const nftContract = new Contract(NFT_CONTRACT_ADDRESS, NFT_CONTRACT_ABI, signer);
+      console.log("getOwner");
+      const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
 
       const owner = await nftContract.owner();
       const userAddress = await signer.getAddress();
@@ -52,10 +88,12 @@ export default function Home() {
 
   const startPresale = async () => {
 
+    setLoading(true);
     try {
-      const signer  = getProviderOrSigner(true);
-      const nftContract = new Contract(NFT_CONTRACT_ADDRESS, NFT_CONTRACT_ABI, signer);
 
+      const signer  = await getProviderOrSigner(true);
+      const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
+      console.log(nftContract);
       const txn = await nftContract.startPresale();
       await txn.wait();
 
@@ -64,12 +102,13 @@ export default function Home() {
     } catch (error) {
       console.log(error);
     }
+    setLoading(false);
   };
 
   const checkIfPresaleStarted = async () => {
     try {
       const provider = await getProviderOrSigner();
-      const nftContract = new Contract(NFT_CONTRACT_ADDRESS, NFT_CONTRACT_ABI, provider);
+      const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
 
       const isPresaleStarted = await nftContract.presaleStarted();
       setPresaleStarted(isPresaleStarted);
@@ -84,7 +123,7 @@ export default function Home() {
   const checkIfPresaleEnded = async () => {
     try {
       const provider = await getProviderOrSigner();
-      const nftContract = new Contract(NFT_CONTRACT_ADDRESS, NFT_CONTRACT_ABI, provider);
+      const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
 
       // this will be a BigNumber as it is uint256
       // unit in seconds
@@ -119,6 +158,22 @@ export default function Home() {
     if(preSaleStarted) {
       await checkIfPresaleEnded();
     }
+
+    await getNumMintedTokens();
+
+    // monitor every 5 secs in real time the number of minted tokens
+    setInterval(async () => {
+      await getNumMintedTokens();
+    }, 5 * 1000);
+
+    // monitor every 5 secs in real time the number of minted tokens
+    setInterval(async () => {
+      const presaleStarted = await checkIfPresaleStarted();
+      if (presaleStarted) {
+        await checkIfPresaleEnded();
+      }
+    }, 5 * 1000);
+
   };
 
   const getProviderOrSigner = async (needSigner = false) => {
@@ -127,6 +182,7 @@ export default function Home() {
     // provider - when you want to read data from the blockchain
     const provider = await web3ModalRef.current.connect();
     const web3Provider = new providers.Web3Provider(provider);
+    
 
     // if the user is not in rinkeby, tell them to switch to it
     const { chainId } = await web3Provider.getNetwork();
@@ -136,6 +192,7 @@ export default function Home() {
     }
 
     if (needSigner) {
+      console.log("signer");
       const signer = web3Provider.getSigner();
       return signer;
     }
@@ -162,6 +219,14 @@ export default function Home() {
 
   function renderBody() {
 
+    if(loading) {
+      return (
+        <span className={styles.description}>
+          Loading...
+        </span>
+      );
+    }    
+
     if(!walletConnected) {
       return (
         <button onClick={connectWallet} className={styles.button}>
@@ -183,8 +248,8 @@ export default function Home() {
       // presale hasnt started yet, come back later
       return (
         <div>
-          <span className={styles.description}>
-            Presale has not started yet. come back later!
+          <span onClick={presaleMint} className={styles.description}>
+            Presale has not started yet. Come back later!
           </span>
         </div>
       );
@@ -198,7 +263,7 @@ export default function Home() {
           <span className={styles.description}>
             Presale has started! If you're in the whitelist, you can start minting!
           </span>
-          <button className={styles.button}>
+          <button onClick={publicMint} className={styles.button}>
             Presale Mint
           </button>
         </div>
@@ -228,6 +293,9 @@ export default function Home() {
       </Head>
 
       <div className={styles.main}>     
+        <span className={styles.description}>
+          {numTokensMinted}/20 have been minted already!
+        </span>
         {renderBody()}
       </div>
     </div>
