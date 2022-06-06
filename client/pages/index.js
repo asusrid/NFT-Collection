@@ -261,7 +261,7 @@ export default function Home() {
       return (
         <div>
           <span className={styles.description}>
-            Presale has started! If you're in the whitelist, you can start minting!
+            Presale has started! If you are in the whitelist, you can start minting!
           </span>
           <button onClick={publicMint} className={styles.button}>
             Presale Mint
