@@ -1,4 +1,4 @@
-##NFT Minting Dapp
+## NFT Minting Dapp
 
 There will be a presale minting in which only whitelisted addresses will be able to mint NFTs. On the other hand, there will be also a public minting option in which any address will be able to mint NFTs.
 
