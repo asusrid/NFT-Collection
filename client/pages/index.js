@@ -248,7 +248,7 @@ export default function Home() {
       // presale hasnt started yet, come back later
       return (
         <div>
-          <span onClick={presaleMint} className={styles.description}>
+          <span className={styles.description}>
             Presale has not started yet. Come back later!
           </span>
         </div>
@@ -263,7 +263,7 @@ export default function Home() {
           <span className={styles.description}>
             Presale has started! If you are in the whitelist, you can start minting!
           </span>
-          <button onClick={publicMint} className={styles.button}>
+          <button onClick={presaleMint} className={styles.button}>
             Presale Mint
           </button>
         </div>
@@ -277,7 +277,7 @@ export default function Home() {
           <span className={styles.description}>
             Presale has ended! You can mint NFT in public sale.
           </span>
-          <button className={styles.button}>
+          <button onClick={publicMint} className={styles.button}>
             Public Mint
           </button>
         </div>
